@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ナンプレ (数独)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* カスタムスタイル */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            width: 100%;
+            max-width: 450px; /* 最大幅調整 */
+            aspect-ratio: 1 / 1; /* 正方形を維持 */
+            border: 2px solid #374151; /* Tailwind gray-700 */
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 0 auto; /* 中央揃え */
+        }
+        .sudoku-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            font-size: clamp(16px, 4vw, 24px); /* レスポンシブフォント */
+            position: relative;
+            cursor: pointer;
+            background-color: #ffffff;
+            transition: background-color 0.2s;
+        }
+        .sudoku-cell:hover {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+        }
+        /* 3x3の太い境界線 */
+        .sudoku-cell:nth-child(3n) {
+            border-right-width: 2px;
+            border-right-color: #374151;
+        }
+        .sudoku-cell:nth-child(9n) {
+            border-right-width: 1px; /* 右端は通常の太さ */
+             border-right-color: #d1d5db;
+        }
+        .sudoku-grid > .sudoku-cell:nth-child(n+19):nth-child(-n+27),
+        .sudoku-grid > .sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom-width: 2px;
+            border-bottom-color: #374151;
+        }
+         /* グリッドの右端のセルの右枠を太くする */
+        .sudoku-grid .sudoku-cell:nth-child(9n-8),
+        .sudoku-grid .sudoku-cell:nth-child(9n-7),
+        .sudoku-grid .sudoku-cell:nth-child(9n-6),
+        .sudoku-grid .sudoku-cell:nth-child(9n-5),
+        .sudoku-grid .sudoku-cell:nth-child(9n-4),
+        .sudoku-grid .sudoku-cell:nth-child(9n-3),
+        .sudoku-grid .sudoku-cell:nth-child(9n-2),
+        .sudoku-grid .sudoku-cell:nth-child(9n-1) {
+             /* border-right-width: 1px; */
+        }
+        .sudoku-grid .sudoku-cell:nth-child(9n) {
+            border-right-width: 0; /* 最後の列の右枠は消す (gridのborderで描画) */
+        }
+        /* グリッドの下端のセルの下枠を太くする */
+        .sudoku-grid > .sudoku-cell:nth-child(n+73):nth-child(-n+81) {
+            border-bottom-width: 0; /* 最後の行の下枠は消す (gridのborderで描画) */
+        }
+
+
+        .sudoku-cell.selected {
+            background-color: #bfdbfe; /* Tailwind blue-200 */
+        }
+        .sudoku-cell.initial-digit {
+            font-weight: bold;
+            color: #1f2937; /* Tailwind gray-800 */
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            cursor: not-allowed;
+        }
+        .sudoku-cell.user-digit {
+            color: #1d4ed8; /* Tailwind blue-700 */
+        }
+        .memo-grid-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 90%;
+            height: 90%;
+            position: absolute;
+            top: 5%;
+            left: 5%;
+        }
+        .memo-cell-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(8px, 1.5vw, 10px); /* メモのフォントサイズ */
+            color: #4b5563; /* Tailwind gray-600 */
+            line-height: 1;
+        }
+        .number-button.selected {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            color: white;
+        }
+        .action-button.active {
+            background-color: #10b981; /* Tailwind emerald-500 */
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+        /* ボタン共通スタイル */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600; /* semibold */
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* gray-500 */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .btn-danger {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+        .number-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-100 flex items-center justify-center min-h-screen">
+    <div id="app-container" class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-lg bg-white rounded-lg shadow-xl">
+
+        <div id="homeScreen" class="text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 sm:mb-8">ナンプレ</h1>
+            <div class="mb-6">
+                <label for="difficulty" class="block text-lg text-gray-700 mb-2">初期配置の数字の数:</label>
+                <select id="difficulty" class="w-full sm:w-1/2 mx-auto p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg">
+                    <option value="45">簡単 (45個)</option>
+                    <option value="35">普通 (35個)</option>
+                    <option value="25" selected>難しい (25個)</option>
+                    <option value="17">超難しい (17個)</option>
+                    <option value="10">挑戦 (10個)</option>
+                </select>
+            </div>
+            <button id="startGameBtn" class="btn btn-primary w-full sm:w-auto text-lg px-8 py-3">ゲーム開始</button>
+        </div>
+
+        <div id="gameScreen" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">ゲーム画面</h2>
+            <div id="sudokuGrid" class="sudoku-grid mb-4">
+                </div>
+
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 text-center">選択中の数字: <span id="selectedDigitDisplay" class="font-bold">-</span></p>
+            </div>
+            
+            <div id="numberControls" class="flex justify-center space-x-1 sm:space-x-2 mb-4 flex-wrap">
+                </div>
+
+            <div id="actionControls" class="grid grid-cols-2 sm:flex sm:justify-center gap-2 mb-6">
+                <button id="modeToggleBtn" class="btn btn-secondary action-button w-full">モード: 数字</button>
+                <button id="deleteBtn" class="btn btn-danger w-full">削除</button>
+            </div>
+            <button id="checkSolutionBtn" class="btn btn-primary w-full text-lg py-3">完成！</button>
+        </div>
+
+        <div id="resultScreen" class="hidden text-center">
+            <h2 id="resultMessage" class="text-3xl font-bold mb-6"></h2>
+            <button id="playAgainBtn" class="btn btn-primary text-lg px-8 py-3">もう一度遊ぶ</button>
+        </div>
+    </div>
+
+    <script>
+        // --- グローバル変数 ---
+        const Screens = {
+            HOME: 'homeScreen',
+            GAME: 'gameScreen',
+            RESULT: 'resultScreen'
+        };
+        let currentScreen = Screens.HOME;
+
+        let solutionBoard = []; // 完成した数独盤
+        let puzzleBoard = [];   // 初期配置の数独盤 (0は空)
+        let userEditsBoard = []; // ユーザーが入力した数字
+        let memoBoard = [];      // メモデータ (各セルにメモ数字の配列)
+
+        let selectedCell = null; // {row, col}
+        let selectedDigit = null; // 1-9
+        let inputMode = 'number'; // 'number' or 'memo'
+        let initialDigitsCount = 25; // デフォルトの初期数字の数
+
+        // --- DOM要素 ---
+        const homeScreenDiv = document.getElementById('homeScreen');
+        const gameScreenDiv = document.getElementById('gameScreen');
+        const resultScreenDiv = document.getElementById('resultScreen');
+        
+        const difficultySelect = document.getElementById('difficulty');
+        const startGameBtn = document.getElementById('startGameBtn');
+        
+        const sudokuGridDiv = document.getElementById('sudokuGrid');
+        const numberControlsDiv = document.getElementById('numberControls');
+        const selectedDigitDisplay = document.getElementById('selectedDigitDisplay');
+        const modeToggleBtn = document.getElementById('modeToggleBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const checkSolutionBtn = document.getElementById('checkSolutionBtn');
+        
+        const resultMessageH2 = document.getElementById('resultMessage');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // --- 初期化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            renderNumberControls();
+            showScreen(Screens.HOME);
+        });
+
+        function setupEventListeners() {
+            startGameBtn.addEventListener('click', () => {
+                initialDigitsCount = parseInt(difficultySelect.value);
+                startGame();
+            });
+
+            modeToggleBtn.addEventListener('click', toggleInputMode);
+            deleteBtn.addEventListener('click', handleDelete);
+            checkSolutionBtn.addEventListener('click', handleCheckSolution);
+            playAgainBtn.addEventListener('click', () => { // <--- 修正箇所
+                 showScreen(Screens.HOME);
+                 selectedCell = null;
+                 selectedDigit = null;
+                 inputMode = 'number';
+                 modeToggleBtn.textContent = 'モード: 数字';
+                 modeToggleBtn.classList.remove('active');
+                 selectedDigitDisplay.textContent = '-';
+            });
+        }
+
+        function showScreen(screenName) {
+            homeScreenDiv.classList.add('hidden');
+            gameScreenDiv.classList.add('hidden');
+            resultScreenDiv.classList.add('hidden');
+
+            document.getElementById(screenName).classList.remove('hidden');
+            currentScreen = screenName;
+        }
+
+        // --- 数独生成ロジック ---
+        function createEmptyBoard() {
+            return Array(9).fill(null).map(() => Array(9).fill(0));
+        }
+
+        function solveSudoku(board) {
+            const emptyPos = findEmpty(board);
+            if (!emptyPos) return true; // 解けた
+
+            const [r, c] = emptyPos;
+            const numbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            for (let num of numbers) {
+                if (isValidPlacement(board, num, r, c)) {
+                    board[r][c] = num;
+                    if (solveSudoku(board)) return true;
+                    board[r][c] = 0; // バックトラック
+                }
+            }
+            return false;
+        }
+
+        function findEmpty(board) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] === 0) return [r, c];
+                }
+            }
+            return null;
+        }
+
+        function isValidPlacement(board, num, r, c) {
+            // 行チェック
+            for (let i = 0; i < 9; i++) {
+                if (board[r][i] === num && i !== c) return false;
+            }
+            // 列チェック
+            for (let i = 0; i < 9; i++) {
+                if (board[i][c] === num && i !== r) return false;
+            }
+            // 3x3 ボックスチェック
+            const boxStartRow = r - r % 3;
+            const boxStartCol = c - c % 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[boxStartRow + i][boxStartCol + j] === num && (boxStartRow + i !== r || boxStartCol + j !== c)) return false;
+                }
+            }
+            return true;
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createPuzzle(solvedBoard, numToKeep) {
+            let currentPuzzleBoard = JSON.parse(JSON.stringify(solvedBoard));
+            let cellsToRemove = 81 - numToKeep;
+            
+            let attempts = 0; // 無限ループ防止
+            const maxAttempts = 500; // 試行回数の上限
+
+            while (cellsToRemove > 0 && attempts < maxAttempts) {
+                const r = Math.floor(Math.random() * 9);
+                const c = Math.floor(Math.random() * 9);
+
+                if (currentPuzzleBoard[r][c] !== 0) {
+                    const temp = currentPuzzleBoard[r][c];
+                    currentPuzzleBoard[r][c] = 0;
+                    // TODO: ここで唯一解を持つかチェックするのが理想だが、複雑なので省略
+                    cellsToRemove--;
+                }
+                attempts++;
+            }
+             if (cellsToRemove > 0) {
+                // 指定された数のセルを削除できなかった場合（非常に少ない初期数字の場合など）
+                // console.warn(`Could not remove all desired cells. Kept: ${81 - cellsToRemove}`);
+                // 強制的に残りのセルを削除 (ランダム性が偏る可能性あり)
+                let allCells = [];
+                for(let r_idx=0; r_idx<9; r_idx++) for(let c_idx=0; c_idx<9; c_idx++) allCells.push({r:r_idx,c:c_idx}); // 変数名を変更 r -> r_idx, c -> c_idx
+                shuffleArray(allCells);
+                
+                let currentKept = 0;
+                for(let r_idx=0; r_idx<9; r_idx++) for(let c_idx=0; c_idx<9; c_idx++) if(currentPuzzleBoard[r_idx][c_idx] !== 0) currentKept++; // 変数名を変更 r -> r_idx, c -> c_idx
+
+                for(const cell of allCells) {
+                    if (currentKept <= numToKeep) break;
+                    if (currentPuzzleBoard[cell.r][cell.c] !== 0) {
+                         currentPuzzleBoard[cell.r][cell.c] = 0;
+                         currentKept--;
+                    }
+                }
+            }
+            return currentPuzzleBoard;
+        }
+
+        // --- ゲームロジック ---
+        function startGame() {
+            solutionBoard = createEmptyBoard();
+            solveSudoku(solutionBoard); // まず完全な数独を生成
+
+            puzzleBoard = createPuzzle(solutionBoard, initialDigitsCount);
+            
+            userEditsBoard = createEmptyBoard();
+            memoBoard = Array(9).fill(null).map(() => Array(9).fill(null).map(() => [])); // 各セルはメモ数字の配列
+
+            renderSudokuGrid();
+            showScreen(Screens.GAME);
+        }
+
+        function renderSudokuGrid() {
+            sudokuGridDiv.innerHTML = ''; // 既存のグリッドをクリア
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.classList.add('sudoku-cell');
+                    cellDiv.dataset.row = r;
+                    cellDiv.dataset.col = c;
+
+                    // 3x3の太線を引くためのクラス（CSSで定義済み）
+                    // if ((c + 1) % 3 === 0 && c < 8) cellDiv.style.borderRightWidth = '2px'; // CSSで対応するため削除
+                    // if ((r + 1) % 3 === 0 && r < 8) cellDiv.style.borderBottomWidth = '2px'; // CSSで対応するため削除
+                    // if (c === 8) cellDiv.style.borderRightWidth = '1px'; // グリッドの右端 // CSSで対応するため削除
+                    // if (r === 8) cellDiv.style.borderBottomWidth = '1px'; // グリッドの下端 // CSSで対応するため削除
+
+
+                    const mainDigitSpan = document.createElement('span');
+                    mainDigitSpan.classList.add('main-digit-display');
+
+                    const memoGridDisplayDiv = document.createElement('div');
+                    memoGridDisplayDiv.classList.add('memo-grid-display');
+
+                    for (let i = 0; i < 9; i++) {
+                        const memoCellContent = document.createElement('div');
+                        memoCellContent.classList.add('memo-cell-content');
+                        memoGridDisplayDiv.appendChild(memoCellContent);
+                    }
+                    
+                    cellDiv.appendChild(mainDigitSpan);
+                    cellDiv.appendChild(memoGridDisplayDiv);
+                    updateCellDisplay(cellDiv); // 引数を cellDiv のみに変更
+
+                    cellDiv.addEventListener('click', () => handleCellClick(r, c));
+                    sudokuGridDiv.appendChild(cellDiv);
+                }
+            }
+        }
+        
+        function updateCellDisplay(cellDivOrRow, c_param) { // c を c_param に変更
+            let cellDiv, row, col; // col を宣言
+            if (typeof c_param === 'undefined') { // cellDivが渡された場合
+                 cellDiv = cellDivOrRow;
+                 row = parseInt(cellDiv.dataset.row);
+                 col = parseInt(cellDiv.dataset.col); // col を取得
+            } else { // row, c が渡された場合
+                row = cellDivOrRow;
+                col = c_param; // col を設定
+                cellDiv = sudokuGridDiv.querySelector(`.sudoku-cell[data-row="${row}"][data-col="${col}"]`);
+            }
+
+            if (!cellDiv) return;
+
+            const mainDigitSpan = cellDiv.querySelector('.main-digit-display');
+            const memoGridDisplayDiv = cellDiv.querySelector('.memo-grid-display');
+            const memoCellContents = memoGridDisplayDiv.querySelectorAll('.memo-cell-content');
+
+            // Reset display
+            mainDigitSpan.textContent = '';
+            memoCellContents.forEach(mc => mc.textContent = '');
+            cellDiv.classList.remove('initial-digit', 'user-digit');
+            memoGridDisplayDiv.classList.add('hidden'); // Default hide memos
+
+
+            if (puzzleBoard[row][col] !== 0) {
+                mainDigitSpan.textContent = puzzleBoard[row][col];
+                cellDiv.classList.add('initial-digit');
+            } else if (userEditsBoard[row][col] !== 0) {
+                mainDigitSpan.textContent = userEditsBoard[row][col];
+                cellDiv.classList.add('user-digit');
+            } else if (memoBoard[row][col] && memoBoard[row][col].length > 0) {
+                memoGridDisplayDiv.classList.remove('hidden');
+                memoBoard[row][col].forEach(memoNum => {
+                    if (memoNum >= 1 && memoNum <= 9) {
+                        memoCellContents[memoNum - 1].textContent = memoNum;
+                    }
+                });
+            }
+
+            // 選択中セルのハイライト
+            if (selectedCell && selectedCell.row === row && selectedCell.col === col) {
+                cellDiv.classList.add('selected');
+            } else {
+                cellDiv.classList.remove('selected');
+            }
+        }
+
+
+        function renderNumberControls() {
+            numberControlsDiv.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const button = document.createElement('button');
+                button.classList.add('btn', 'btn-secondary', 'number-button');
+                button.textContent = i;
+                button.dataset.number = i;
+                button.addEventListener('click', () => handleNumberSelect(i));
+                numberControlsDiv.appendChild(button);
+            }
+        }
+
+        function handleCellClick(r, c) {
+            // 以前選択されていたセルのハイライトを解除
+            if (selectedCell) {
+                const prevCellDiv = sudokuGridDiv.querySelector(`.sudoku-cell[data-row="${selectedCell.row}"][data-col="${selectedCell.col}"]`);
+                if (prevCellDiv) prevCellDiv.classList.remove('selected');
+            }
+
+            selectedCell = { row: r, col: c };
+            const currentCellDiv = sudokuGridDiv.querySelector(`.sudoku-cell[data-row="${r}"][data-col="${c}"]`);
+            if (currentCellDiv) currentCellDiv.classList.add('selected');
+
+            if (puzzleBoard[r][c] !== 0) return; // 初期配置の数字は変更不可
+
+            if (selectedDigit !== null) {
+                if (inputMode === 'number') {
+                    userEditsBoard[r][c] = selectedDigit;
+                    memoBoard[r][c] = []; // 数字を入力したらメモをクリア
+                } else if (inputMode === 'memo') {
+                    userEditsBoard[r][c] = 0; // メモを入力したら数字をクリア
+                    const memoIndex = memoBoard[r][c].indexOf(selectedDigit);
+                    if (memoIndex > -1) {
+                        memoBoard[r][c].splice(memoIndex, 1); // 既存メモを削除 (トグル)
+                    } else {
+                        memoBoard[r][c].push(selectedDigit); // 新規メモ追加
+                        memoBoard[r][c].sort((a,b) => a-b); // ソートしておく
+                    }
+                }
+                updateCellDisplay(r,c);
+            }
+        }
+        
+        function handleNumberSelect(num) {
+            selectedDigit = num;
+            selectedDigitDisplay.textContent = num;
+            // 数字ボタンの選択状態を更新
+            document.querySelectorAll('#numberControls .number-button').forEach(btn => {
+                btn.classList.remove('selected');
+                if (parseInt(btn.dataset.number) === num) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function toggleInputMode() {
+            inputMode = (inputMode === 'number') ? 'memo' : 'number';
+            modeToggleBtn.textContent = `モード: ${inputMode === 'number' ? '数字' : 'メモ'}`;
+            if (inputMode === 'memo') {
+                modeToggleBtn.classList.add('active');
+            } else {
+                modeToggleBtn.classList.remove('active');
+            }
+        }
+
+        function handleDelete() {
+            if (selectedCell) {
+                const { row, col } = selectedCell;
+                if (puzzleBoard[row][col] === 0) { // 初期配置でない場合のみ削除可能
+                    userEditsBoard[row][col] = 0;
+                    memoBoard[row][col] = [];
+                    updateCellDisplay(row,col);
+                }
+            }
+        }
+
+        function handleCheckSolution() {
+            let isCorrect = true;
+            let isComplete = true;
+
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const currentValue = puzzleBoard[r][c] !== 0 ? puzzleBoard[r][c] : userEditsBoard[r][c];
+                    if (currentValue === 0) {
+                        isComplete = false; // 空のセルがある
+                    }
+                    if (currentValue !== 0 && currentValue !== solutionBoard[r][c]) {
+                        isCorrect = false;
+                    }
+                }
+            }
+            
+            if (!isComplete) {
+                 resultMessageH2.textContent = '未完成です。全てのマスを埋めてください。';
+                 resultMessageH2.classList.remove('text-green-500');
+                 resultMessageH2.classList.add('text-red-500');
+            } else if (isCorrect) {
+                resultMessageH2.textContent = '正解！おめでとうございます！';
+                resultMessageH2.classList.remove('text-red-500');
+                resultMessageH2.classList.add('text-green-500');
+            } else {
+                resultMessageH2.textContent = '不正解です。もう一度試してください。';
+                resultMessageH2.classList.remove('text-green-500');
+                resultMessageH2.classList.add('text-red-500');
+            }
+            showScreen(Screens.RESULT);
+        }
+
+    </script>
+</body>
+</html>
