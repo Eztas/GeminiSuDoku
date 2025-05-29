@@ -88,3 +88,43 @@ playAgainBtn のイベントリスナーの記述を修正し、また、`create
 ## Prompt
 (会話履歴を消してしまったため、新しチャットを作成してコードを全文載せた上で)
 入力時や削除時、メモ時に数字を選択したとき、数字をハイライトする機能が欲しい
+
+## Answer
+Okay, I can help you add the highlighting feature to your Sudoku game!
+
+This feature will highlight all cells on the grid that contain the number currently selected via the number buttons. The highlighting will update dynamically as you select different numbers, input numbers into cells, or delete numbers.
+
+Here's what I'll do:
+
+Add CSS styles for the highlighted cells. We'll make sure that initially placed numbers look slightly different when highlighted compared to user-inputted numbers, and that the currently focused cell's selection style takes precedence.
+Create a new JavaScript function updateNumberHighlights(digit) that will iterate through the grid and apply/remove the highlight class to cells containing the specified digit.
+
+Modify existing JavaScript functions:
+
+handleNumberSelect(num): To call updateNumberHighlights when a number button is clicked.
+
+handleCellClick(r, c): To call updateNumberHighlights after a number is placed or a memo is toggled, ensuring the grid reflects the highlight for the selectedDigit. I'll also refine the logic for handling cell selection and updates.
+
+handleDelete(): To call updateNumberHighlights after a number is deleted.
+
+startGame() and the playAgainBtn listener: To include a new function resetGameSelectionStates() which will clear any active number selection and highlights when a new game starts or the user returns to the home screen.
+
+Key changes include:
+
+New CSS classes (.highlighted-number, .initial-digit.highlighted-number) and adjustments to .selected to manage background colors for highlighting and focus.
+
+updateNumberHighlights(digit) function: This new function handles the logic for adding or removing the .highlighted-number class from cells based on the provided digit.
+
+resetGameSelectionStates() function: Centralizes the logic for resetting selectedCell, selectedDigit, input mode, button states, and clearing highlights. This is called when starting a new game or returning to the home screen.
+
+handleNumberSelect(num): Now also allows deselecting a number if clicked again, and calls updateNumberHighlights.
+
+handleCellClick(r, c): Refined logic for updating cell display and then calling updateNumberHighlights if selectedDigit is active and a change was made. It also now includes a toggle behavior for number input: if you click a cell with the currently selected number, it will clear that cell.
+
+handleDelete(): Calls updateNumberHighlights to refresh highlights after a deletion.
+
+startGame(): Calls resetGameSelectionStates() to ensure a clean start.
+
+updateCellDisplay(): Modified to primarily manage its own set of classes, with .selected taking precedence for focus indication thanks to !important in CSS.
+
+Now, when you select a number from the number pad, all cells containing that number (both initial and user-inputted) will be highlighted. This highlighting will also persist correctly when you are in "memo" mode but have a number selected. The focused cell will have its distinct selection highlight.
