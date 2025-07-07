@@ -60,3 +60,14 @@ Cloud Runでデプロイすることも可能らしいが、課金される可�
 
 そちらでもいろいろ試した結果を随時更新したい
 
+### Gemini CLIでの実装
+
+わざわざGeminiからコピペしなくてもいい
+
+もはやここでReactベースでの実装も考えてみる
+
+デプロイだけ、Google AI Studioで考えてみる可能性
+
+Gemini CLIとGoogle AI Studioは同じトークンを使うらしいので注意
+
+
