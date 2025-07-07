@@ -43,3 +43,9 @@ AIに特定の能力を与え、より高度なタスクを実行させます。
 - URLコンテキスト (URL context): 指定されたURLの内容をモデルが読み取り、その情報を元に応答できるようになります。
 
 ![alt text](tools.png)
+
+![alt text](output_code.png)
+
+![alt text](output_visual.png)
+
+![alt text](function.png)
