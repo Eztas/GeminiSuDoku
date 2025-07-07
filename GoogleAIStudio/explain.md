@@ -28,3 +28,18 @@ AIの基本的な振る舞いをここで決めます。
 - 思考の予算 (Set thinking budget): 思考モード利用時の計算量やステップの上限を設定します。
 
 ![alt text](thinking.png)
+
+### ツール (Tools)
+AIに特定の能力を与え、より高度なタスクを実行させます。
+
+- 構造化出力 (Structured output): モデルの出力を、JSONのような特定の構造化フォーマットに強制します。
+
+- コード実行 (Code execution): モデルが問題解決のために、Pythonコードを自ら書いて実行できるようになります。
+
+- 関数呼び出し (Function calling): 開発者が定義した外部の関数やAPIを、モデルが呼び出せるようになります。
+
+- Google検索によるグラウンディング (Grounding with Google Search): モデルがGoogle検索を使い、最新の情報や事実に基づいて回答を生成するようになります。
+
+- URLコンテキスト (URL context): 指定されたURLの内容をモデルが読み取り、その情報を元に応答できるようになります。
+
+![alt text](tools.png)
