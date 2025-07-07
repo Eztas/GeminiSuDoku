@@ -20,3 +20,11 @@ AIの基本的な振る舞いをここで決めます。
 - メディア解像度 (Media Resolution): 画像などを入力した際の、認識・処理の精細さを設定します。
 
 ![alt text](run_settings.png)
+
+### 思考(Thinking)
+
+- 思考モード (Thinking mode): より複雑な推論（チェーン・オブ・ソート）をモデルに許可し、回答の質を向上させます。
+
+- 思考の予算 (Set thinking budget): 思考モード利用時の計算量やステップの上限を設定します。
+
+![alt text](thinking.png)
