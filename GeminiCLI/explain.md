@@ -1,5 +1,7 @@
 # GeminiCLI
 
+[Proは1日100回, Flash-Liteだと1000らしい(2025/07/07現在)](https://ai.google.dev/gemini-api/docs/rate-limits?hl=ja)
+
 ## GeminiCLI インストール
 
 2025/07/05現在
