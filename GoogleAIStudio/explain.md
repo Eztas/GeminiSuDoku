@@ -1,6 +1,12 @@
 # Google AI Studio
 2025/07/07現在
 
+Gemini 2.5 pro 
+
+1日に無料で100万トークンを利用できる
+
+[100万トークンからのプラン(公式)](https://ai.google.dev/gemini-api/docs/pricing?hl=ja)
+
 ## Settings(Chat)
 Chatでの設定
 
