@@ -38,3 +38,5 @@
 ## 参考文献
 
 https://note.com/munakata_souri/n/n36c29a93d9a7
+
+[GitHub](https://github.com/google-gemini/gemini-cli)
