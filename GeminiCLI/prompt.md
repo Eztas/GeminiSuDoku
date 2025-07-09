@@ -64,3 +64,5 @@ AIに関係ないが、コンポーネントも増えることから、React, �
 
 ## Answer
 ![alt text](answer3-3-1.png)
+
+![alt text](answer3-3-2.png)
