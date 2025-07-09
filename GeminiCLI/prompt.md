@@ -18,10 +18,10 @@
 
 
   まず、HTMLの選択メニューをスライダーに置き換えます
-  ![alt text](answer3-1.png)
+  ![alt text](answer3-1-1.png)
 
   次に、JavaScriptコードを更新して、新しいスライダーの動作を制御します。
-  ![alt text](answer3-2.png)
+  ![alt text](answer3-1-2.png)
 
 ## Reflection
 
