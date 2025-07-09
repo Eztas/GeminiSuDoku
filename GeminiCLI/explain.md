@@ -47,6 +47,8 @@ node.jsのインストールをしてからGeminiCLIのインストールが必�
 
 使用するテキストエディタを設定するための画面を開く機能
 
+(VSCodeを使用するためには`code`のpathを通す必要あり)
+
 ![alt text](editor.png)
 
 ## 参考文献
