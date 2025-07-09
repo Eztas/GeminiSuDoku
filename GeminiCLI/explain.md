@@ -6,7 +6,9 @@
 
 2025/07/05現在
 
-## node.jsのインストール
+node.jsのインストールをしてからGeminiCLIのインストールが必要
+
+### node.jsのインストール
 
 1. [https://nodejs.org/ja/download](https://nodejs.org/ja/download)に移動
 2. 公式にあるコマンドをzshで入力(nvmを使うだけで、ver切り替えが容易), どのディレクトリ下でもOK
@@ -27,7 +29,7 @@
   npm -v # "10.9.2"が表示される。   
 ```
 
-## GeminiCLIをnpmでインストール
+### GeminiCLIをnpmでインストール
 
 1. このまま`npm install -g @google/gemini-cli`を入力(権限周りのエラーはなかった)
 2. geminiとターミナルで入力
