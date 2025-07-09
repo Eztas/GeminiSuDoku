@@ -217,7 +217,8 @@
         const gameScreenDiv = document.getElementById('gameScreen');
         const resultScreenDiv = document.getElementById('resultScreen');
         
-        const difficultySelect = document.getElementById('difficulty');
+        const difficultySlider = document.getElementById('difficultySlider');
+        const difficultyValue = document.getElementById('difficultyValue');
         const startGameBtn = document.getElementById('startGameBtn');
         
         const sudokuGridDiv = document.getElementById('sudokuGrid');
@@ -238,8 +239,12 @@
         });
 
         function setupEventListeners() {
+            difficultySlider.addEventListener('input', () => {
+                difficultyValue.textContent = difficultySlider.value;
+            });
+
             startGameBtn.addEventListener('click', () => {
-                initialDigitsCount = parseInt(difficultySelect.value);
+                initialDigitsCount = parseInt(difficultySlider.value);
                 startGame();
             });
 
