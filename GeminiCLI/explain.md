@@ -43,6 +43,14 @@ node.jsのインストールをしてからGeminiCLIのインストールが必�
 
 どれくらいトークンを使ったか確認する(おそらくこれの使用でトークンが使われることはない)
 
+### /editor
+
+使用するテキストエディタを設定するための画面を開く機能
+
+(VSCodeを使用するためには`code`のpathを通す必要あり)
+
+![alt text](editor.png)
+
 ## 参考文献
 
 https://note.com/munakata_souri/n/n36c29a93d9a7

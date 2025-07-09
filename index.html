@@ -162,14 +162,8 @@
         <div id="homeScreen" class="text-center">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 sm:mb-8">ナンプレ</h1>
             <div class="mb-6">
-                <label for="difficulty" class="block text-lg text-gray-700 mb-2">初期配置の数字の数:</label>
-                <select id="difficulty" class="w-full sm:w-1/2 mx-auto p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg">
-                    <option value="45">簡単 (45個)</option>
-                    <option value="35">普通 (35個)</option>
-                    <option value="25" selected>難しい (25個)</option>
-                    <option value="17">超難しい (17個)</option>
-                    <option value="10">挑戦 (10個)</option>
-                </select>
+                <label for="difficultySlider" class="block text-lg text-gray-700 mb-2">初期配置の数字の数: <span id="difficultyValue" class="font-bold text-blue-600">25</span>個</label>
+                <input type="range" id="difficultySlider" min="17" max="80" value="25" class="w-full sm:w-2/3 mx-auto h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
             </div>
             <button id="startGameBtn" class="btn btn-primary w-full sm:w-auto text-lg px-8 py-3">ゲーム開始</button>
         </div>
@@ -223,7 +217,8 @@
         const gameScreenDiv = document.getElementById('gameScreen');
         const resultScreenDiv = document.getElementById('resultScreen');
         
-        const difficultySelect = document.getElementById('difficulty');
+        const difficultySlider = document.getElementById('difficultySlider');
+        const difficultyValue = document.getElementById('difficultyValue');
         const startGameBtn = document.getElementById('startGameBtn');
         
         const sudokuGridDiv = document.getElementById('sudokuGrid');
@@ -244,8 +239,12 @@
         });
 
         function setupEventListeners() {
+            difficultySlider.addEventListener('input', () => {
+                difficultyValue.textContent = difficultySlider.value;
+            });
+
             startGameBtn.addEventListener('click', () => {
-                initialDigitsCount = parseInt(difficultySelect.value);
+                initialDigitsCount = parseInt(difficultySlider.value);
                 startGame();
             });
 
