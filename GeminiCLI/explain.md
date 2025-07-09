@@ -37,8 +37,16 @@ node.jsのインストールをしてからGeminiCLIのインストールが必�
 4. ログイン方法の選択(Login with Googleを選択)し、ブラウザでログイン
 5. クリア
 
+## コマンド
+
+### /stats
+
+どれくらいトークンを使ったか確認する(おそらくこれの使用でトークンが使われることはない)
+
 ## 参考文献
 
 https://note.com/munakata_souri/n/n36c29a93d9a7
 
 [GitHub](https://github.com/google-gemini/gemini-cli)
+
+[コマンドなど](https://zenn.dev/mafukuda/articles/gemini-cli-usage)
