@@ -42,8 +42,13 @@ AIに関係ないが、コンポーネントも増えることから、React, �
 ![alt text](tokenResult.png)
 
 # 3-2(2025/07/10)
+## Prompt
+
 (ついでにリリースノートも書かせてみる)
 
 @README.md
 今回実装した内容をVer3のリリース情報としてこのREADMEに追加して
 そして、適切なprefixをつけて、リモートリポジトリにプッシュして
+
+## Answer
+![alt text](answer3-2-1.png)
