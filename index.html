@@ -373,6 +373,67 @@
             return counter;
         }
 
+        function getCandidates(board, r, c) {
+            if (board[r][c] !== 0) return [];
+
+            let candidates = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            // Check row
+            for (let i = 0; i < 9; i++) {
+                if (candidates.has(board[r][i])) {
+                    candidates.delete(board[r][i]);
+                }
+            }
+
+            // Check column
+            for (let i = 0; i < 9; i++) {
+                if (candidates.has(board[i][c])) {
+                    candidates.delete(board[i][c]);
+                }
+            }
+
+            // Check 3x3 box
+            const boxStartRow = r - r % 3;
+            const boxStartCol = c - c % 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const val = board[boxStartRow + i][boxStartCol + j];
+                    if (candidates.has(val)) {
+                        candidates.delete(val);
+                    }
+                }
+            }
+            return Array.from(candidates);
+        }
+
+        function isLogicallySolvable(board) {
+            const tempBoard = JSON.parse(JSON.stringify(board));
+            let emptyCells = 81;
+            for(let r=0; r<9; r++) for(let c=0; c<9; c++) if(tempBoard[r][c]!==0) emptyCells--;
+
+            let progress = true;
+            while (emptyCells > 0 && progress) {
+                progress = false;
+                // Naked Singles: Find a cell with only one candidate
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (tempBoard[r][c] === 0) {
+                            const candidates = getCandidates(tempBoard, r, c);
+                            if (candidates.length === 1) {
+                                tempBoard[r][c] = candidates[0];
+                                emptyCells--;
+                                progress = true;
+                            }
+                        }
+                    }
+                }
+                // Note: A full implementation would also check for Hidden Singles here
+                // for better difficulty grading, but this is sufficient for a basic
+                // "solvable without guessing" check.
+            }
+            return emptyCells === 0;
+        }
+
         function createPuzzle(solvedBoard, numToKeep) {
             let puzzle = JSON.parse(JSON.stringify(solvedBoard));
             let cells = [];
@@ -388,21 +449,20 @@
                 const originalValue = puzzle[cell.r][cell.c];
                 if (originalValue === 0) continue;
 
-                // Try removing the cell
                 puzzle[cell.r][cell.c] = 0;
-                
-                // Make a copy to check for solutions without modifying the current puzzle state
                 const puzzleCopy = JSON.parse(JSON.stringify(puzzle));
+
                 const solutionCount = countSolutions(puzzleCopy);
 
-                if (solutionCount !== 1) {
-                    // If not unique, put the number back
+                if (solutionCount !== 1 || !isLogicallySolvable(puzzleCopy)) {
                     puzzle[cell.r][cell.c] = originalValue;
                 } else {
-                    // If unique, the removal was successful
                     removedCount++;
                 }
             }
+            // It's possible that we couldn't remove as many cells as requested
+            // especially for very low numToKeep values, because it would make the puzzle
+            // unsolvable by logic. This is expected behavior.
             return puzzle;
         }
 
