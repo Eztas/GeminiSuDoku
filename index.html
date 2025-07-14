@@ -169,7 +169,10 @@
         </div>
 
         <div id="gameScreen" class="hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">ゲーム画面</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">ゲーム画面</h2>
+                <p class="text-sm text-gray-600">実際のヒント数: <span id="actualDifficulty" class="font-bold">--</span>個</p>
+            </div>
             <div id="sudokuGrid" class="sudoku-grid mb-4">
                 </div>
 
@@ -373,66 +376,7 @@
             return counter;
         }
 
-        function getCandidates(board, r, c) {
-            if (board[r][c] !== 0) return [];
-
-            let candidates = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-            // Check row
-            for (let i = 0; i < 9; i++) {
-                if (candidates.has(board[r][i])) {
-                    candidates.delete(board[r][i]);
-                }
-            }
-
-            // Check column
-            for (let i = 0; i < 9; i++) {
-                if (candidates.has(board[i][c])) {
-                    candidates.delete(board[i][c]);
-                }
-            }
-
-            // Check 3x3 box
-            const boxStartRow = r - r % 3;
-            const boxStartCol = c - c % 3;
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    const val = board[boxStartRow + i][boxStartCol + j];
-                    if (candidates.has(val)) {
-                        candidates.delete(val);
-                    }
-                }
-            }
-            return Array.from(candidates);
-        }
-
-        function isLogicallySolvable(board) {
-            const tempBoard = JSON.parse(JSON.stringify(board));
-            let emptyCells = 81;
-            for(let r=0; r<9; r++) for(let c=0; c<9; c++) if(tempBoard[r][c]!==0) emptyCells--;
-
-            let progress = true;
-            while (emptyCells > 0 && progress) {
-                progress = false;
-                // Naked Singles: Find a cell with only one candidate
-                for (let r = 0; r < 9; r++) {
-                    for (let c = 0; c < 9; c++) {
-                        if (tempBoard[r][c] === 0) {
-                            const candidates = getCandidates(tempBoard, r, c);
-                            if (candidates.length === 1) {
-                                tempBoard[r][c] = candidates[0];
-                                emptyCells--;
-                                progress = true;
-                            }
-                        }
-                    }
-                }
-                // Note: A full implementation would also check for Hidden Singles here
-                // for better difficulty grading, but this is sufficient for a basic
-                // "solvable without guessing" check.
-            }
-            return emptyCells === 0;
-        }
+        
 
         function createPuzzle(solvedBoard, numToKeep) {
             let puzzle = JSON.parse(JSON.stringify(solvedBoard));
@@ -450,13 +394,18 @@
                 if (originalValue === 0) continue;
 
                 puzzle[cell.r][cell.c] = 0;
+                // Check if the puzzle still has exactly one solution.
+                // This is the only check we perform, per the user's request to prioritize
+                // the number of hints, allowing for puzzles that require advanced techniques.
                 const puzzleCopy = JSON.parse(JSON.stringify(puzzle));
-
                 const solutionCount = countSolutions(puzzleCopy);
 
-                if (solutionCount !== 1 || !isLogicallySolvable(puzzleCopy)) {
+
+                if (solutionCount !== 1) {
+                    // If removing the number leads to multiple or no solutions, put it back.
                     puzzle[cell.r][cell.c] = originalValue;
                 } else {
+                    // The removal is valid, so we keep it and count it.
                     removedCount++;
                 }
             }
@@ -472,6 +421,10 @@
             solveSudoku(solutionBoard); 
 
             puzzleBoard = createPuzzle(solutionBoard, initialDigitsCount);
+
+            // Count the actual number of hints in the generated puzzle
+            const actualHintCount = puzzleBoard.flat().filter(cell => cell !== 0).length;
+            document.getElementById('actualDifficulty').textContent = actualHintCount;
             
             userEditsBoard = createEmptyBoard();
             memoBoard = Array(9).fill(null).map(() => Array(9).fill(null).map(() => []));
